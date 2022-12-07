@@ -10,8 +10,11 @@ snake_length=3
 score="0"
 snake_path=("15,30" "15,31" "15,32")
 b_coin_pos=""
+bomb_pos=""
 b1=0
 b2=0
+bomb1=0
+bomb2=0
 speed=0.01
 pid=$$
 trap end EXIT
@@ -146,13 +149,25 @@ function check(){
 
 		fi
 	done
+
+	#touch ⌀
+	snake_head=${snake_path[0]}
+	if [ $snake_head == $bomb_pos ]
+	then
+		echo "false" > snake_game_state
+		end
+
+	fi
 	#get b coin
 	snake_head=${snake_path[0]}
 	if [ $snake_head == $b_coin_pos ]
 	then
+		eval "canvas${bomb1}[${bomb2}]='\e[38;2;250;0;0m \e[0m'"
 		score=`expr $score + 1`
 		add_snake_length
+		generate_bomb
 		generate_b_coin
+
 	fi
 }
 
@@ -193,8 +208,10 @@ function snake_game(){
 	printf $hide_cursor
 	init
 	set_snake_path
+	generate_bomb
 	generate_b_coin
 	eval "canvas${b1}[${b2}]='\e[38;2;250;250;0mⒷ\e[0m'"
+	eval "canvas${bomb1}[${bomb2}]='\e[38;2;250;0;0m⌀\e[0m'"
 	draw
 	echo -e "\e[38;2;250;250;0mget \e[38;2;255;0;0m${score}\e[38;2;250;250;0m ฿ coins\e[0m"
 	move
@@ -209,6 +226,7 @@ function snake_game(){
 		printf "\033[u"
 
 		eval "canvas${b1}[${b2}]='\e[38;2;250;250;0mⒷ\e[0m'"
+		eval "canvas${bomb1}[${bomb2}]='\e[38;2;250;0;0m⌀\e[0m'"
 		draw
 		echo -e "\e[38;2;250;250;0mget \e[38;2;255;0;0m${score}\e[38;2;250;250;0m ฿ coins\e[0m"
 		move
@@ -226,21 +244,19 @@ function button_listener(){
 	while [ $state == "true" ]
 	do
 		read -s -n 1 key
-		if [ $key == "e" ] || [ $key == "E" ]
+		if [ $key == "w" ] || [ $key == "W" ]
 		then
 			echo "up" > "snake_game_direction"
-		elif [ $key == "d" ] || [ $key == "D" ]
-		then
-			echo "down" > "snake_game_direction"
 		elif [ $key == "s" ] || [ $key == "S" ]
 		then
+			echo "down" > "snake_game_direction"
+		elif [ $key == "a" ] || [ $key == "A" ]
+		then
 			echo "left" > "snake_game_direction"
-		elif [ $key == "f" ] || [ $key == "F" ]
+		elif [ $key == "d" ] || [ $key == "D" ]
 		then
 			echo "right" > "snake_game_direction"
-		elif [ $key == "q" ] || [ $key == "Q" ]
-		then
-			echo "false" > "snake_game_state"
+
 		fi
 		state=`cat snake_game_state`
 		direction=`cat snake_game_direction`
@@ -253,6 +269,14 @@ function generate_b_coin(){
 	b1=$(($RANDOM%${h}))
 	b2=$(($RANDOM%${w}))
 	b_coin_pos=$b1","$b2
+}
+#💣
+function generate_bomb(){
+	h=`expr $height - 2`
+	w=`expr $width - 2`
+	bomb1=$(($RANDOM%${h}))
+	bomb2=$(($RANDOM%${w}))
+	bomb_pos=$bomb1","$bomb2
 }
 variable_init
 snake_game
