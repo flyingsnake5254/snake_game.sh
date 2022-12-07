@@ -270,7 +270,7 @@ function generate_b_coin(){
 	b2=$(($RANDOM%${w}))
 	b_coin_pos=$b1","$b2
 }
-#💣
+
 function generate_bomb(){
 	h=`expr $height - 2`
 	w=`expr $width - 2`
